@@ -1,21 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <!--
+        Logging Configuration Explanation:
+        
+        This configuration defines different logging levels to control the amount of output:
+        
+        1. TRACE: Most detailed level - shows every step of execution (not used here)
+        2. DEBUG: Detailed debugging information - useful for development
+        3. INFO: General application flow information - normal operation details
+        4. WARN: Warning messages - potential issues that don't stop execution
+        5. ERROR: Error messages - serious problems that might cause failures
+        
+        Our choices:
+        - com.example.camunda (our app): INFO level - shows important application flow
+        - io.camunda (Camunda client): INFO level - shows important client operations
+        - io.grpc, io.netty: WARN level - reduces noise from networking libraries
+        - Root level: INFO - default level for all other loggers
+        
+        The pattern format shows: timestamp, thread name, log level, logger name, and message
+    -->
+    
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- Set logging level for our application -->
+    <!-- Set logging level for our application - INFO shows important flow without too much detail -->
     <logger name="com.example.camunda" level="INFO" />
     
-    <!-- Set logging level for Camunda client -->
+    <!-- Set logging level for Camunda client - INFO shows client operations -->
     <logger name="io.camunda" level="INFO" />
     
-    <!-- Reduce noise from other libraries -->
+    <!-- Reduce noise from networking libraries - WARN only shows potential issues -->
     <logger name="io.grpc" level="WARN" />
     <logger name="io.netty" level="WARN" />
 
+    <!-- Default level for all other loggers -->
     <root level="INFO">
         <appender-ref ref="CONSOLE" />
     </root>

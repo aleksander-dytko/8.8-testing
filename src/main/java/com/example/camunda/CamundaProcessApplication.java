@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -37,8 +38,10 @@ public class CamundaProcessApplication {
     }
     
     public static void main(String[] args) {
-        // Create Camunda client with default configuration (localhost:26500)
-        try (CamundaClient client = CamundaClient.newClientBuilder().build()) {
+        // Create Camunda client configured to use REST API at localhost:8080
+        try (CamundaClient client = CamundaClient.newClientBuilder()
+                .restAddress(URI.create("http://localhost:8080"))
+                .build()) {
             CamundaProcessApplication app = new CamundaProcessApplication(client);
             app.runProcessDemo();
         } catch (Exception e) {
@@ -59,6 +62,15 @@ public class CamundaProcessApplication {
             // 2. Start process instance
             ProcessInstanceEvent processInstance = startProcessInstance();
             long processInstanceKey = processInstance.getProcessInstanceKey();
+            
+            // Wait 10 seconds before querying user tasks to ensure process has progressed
+            logger.info("Waiting 10 seconds for process to reach user task...");
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.warn("Wait interrupted", e);
+            }
             
             // 3. Query user tasks for the started instance
             Optional<UserTask> userTask = queryUserTask(processInstanceKey);
@@ -201,6 +213,21 @@ public class CamundaProcessApplication {
         try {
             logger.info("Activating and completing service task job...");
             
+            /*
+             * CountDownLatch Explanation:
+             * A CountDownLatch is a synchronization primitive that allows one or more threads
+             * to wait until a set of operations being performed in other threads completes.
+             * 
+             * In this case:
+             * - We initialize the latch with count=1
+             * - The job worker handler runs asynchronously when a job is received
+             * - When the job is completed (successfully or with failure), we call latch.countDown()
+             * - The main thread waits using latch.await() until the count reaches 0
+             * - This ensures the main thread doesn't continue until the service task job is processed
+             * 
+             * This pattern is necessary because job workers operate asynchronously, and we need
+             * to coordinate between the async job processing and the main application flow.
+             */
             CountDownLatch latch = new CountDownLatch(1);
             
             // Create job worker to handle service task

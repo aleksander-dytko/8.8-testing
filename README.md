@@ -58,12 +58,36 @@ mvn clean compile
 # Run tests (requires Camunda Process Test environment)
 mvn test
 
-# Run the main application (requires running Camunda broker)
+# Run the main application (requires running Camunda broker with REST API at http://localhost:8080)
 mvn exec:java -Dexec.mainClass="com.example.camunda.CamundaProcessApplication"
 ```
 
+## Configuration
+
+- **REST API**: The application is configured to connect to Camunda REST API at `http://localhost:8080`
+- **Wait Time**: The application waits 10 seconds before querying user tasks to ensure process progression
+- **Logging**: Configured with INFO level for application flow, WARN level for networking libraries
+
+## Technical Implementation Details
+
+### CountDownLatch Usage
+The application uses `CountDownLatch` for synchronization in service task job handling:
+- Initialized with count=1 to wait for a single job completion
+- Job worker handler runs asynchronously when a job is received  
+- `countDown()` is called when job completes (successfully or with failure)
+- Main thread waits using `await()` until count reaches 0
+- Ensures main thread coordination with async job processing
+
+### Logging Configuration
+The logging levels are configured as follows:
+- **INFO**: Used for application flow (`com.example.camunda`) and Camunda client operations (`io.camunda`)
+- **WARN**: Used for networking libraries (`io.grpc`, `io.netty`) to reduce noise
+- **Pattern**: Shows timestamp, thread name, log level, logger name, and message
+
 ## Notes
 
-- The application expects a Camunda 8 broker to be running on localhost:26500 (default)
+- The application connects to Camunda 8 REST API at http://localhost:8080
 - Tests use the Camunda Process Test framework which provides an embedded test environment
 - All operations use the Orchestration cluster API through the Camunda Java Client
+- The application includes a 10-second wait before querying user tasks to ensure proper process flow
+- Camunda test assertions are used in tests for better process verification

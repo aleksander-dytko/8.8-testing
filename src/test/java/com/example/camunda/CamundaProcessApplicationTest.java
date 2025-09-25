@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,8 +38,9 @@ class CamundaProcessApplicationTest {
 
     @Test
     void shouldCompleteProcessWithUserTaskAndServiceTask(CamundaProcessTestContext processTestContext) {
-        // Get the Camunda client from the test context
-        CamundaClient client = processTestContext.createClient();
+        // Get the Camunda client from the test context configured for REST API
+        CamundaClient client = processTestContext.createClient(builder -> 
+            builder.restAddress(URI.create("http://localhost:8080")));
         
         logger.info("Starting comprehensive process test");
         
@@ -67,17 +69,17 @@ class CamundaProcessApplicationTest {
             .send()
             .join();
         
-        assertNotNull(processInstance);
-        assertTrue(processInstance.getProcessInstanceKey() > 0);
-        assertEquals(PROCESS_ID, processInstance.getBpmnProcessId());
+        // Use enhanced JUnit assertions for process instance verification
+        assertNotNull(processInstance, "Process instance should be created");
+        assertTrue(processInstance.getProcessInstanceKey() > 0, "Process instance key should be positive");
+        assertEquals(PROCESS_ID, processInstance.getBpmnProcessId(), "Process definition ID should match");
         logger.info("Process instance created with key: {}", processInstance.getProcessInstanceKey());
         
-        // 3. Wait for and query user task
-        logger.info("Step 3: Querying user tasks");
+        // 3. Wait for and query user task (wait 10 seconds as specified)
+        logger.info("Step 3: Waiting 10 seconds then querying user tasks");
         
-        // Wait a bit for the process to reach the user task
         try {
-            Thread.sleep(2000); // Simple wait instead of waitForIdleState
+            Thread.sleep(10000); // Wait 10 seconds as requested
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -185,7 +187,8 @@ class CamundaProcessApplicationTest {
     
     @Test
     void shouldHandleProcessWithoutUserTaskInteraction(CamundaProcessTestContext processTestContext) {
-        CamundaClient client = processTestContext.createClient();
+        CamundaClient client = processTestContext.createClient(builder -> 
+            builder.restAddress(URI.create("http://localhost:8080")));
         
         logger.info("Testing process deployment and instance creation only");
         
@@ -197,15 +200,18 @@ class CamundaProcessApplicationTest {
         // Start instance
         ProcessInstanceEvent processInstance = app.startProcessInstance();
         
-        assertNotNull(processInstance);
-        assertTrue(processInstance.getProcessInstanceKey() > 0);
+        // Use enhanced JUnit assertions instead of Camunda assertions
+        assertNotNull(processInstance, "Process instance should be created");
+        assertTrue(processInstance.getProcessInstanceKey() > 0, "Process instance key should be positive");
+        assertEquals(PROCESS_ID, processInstance.getBpmnProcessId(), "Process definition ID should match");
         
         logger.info("Basic process operations test completed");
     }
     
     @Test
     void shouldHandleUserTaskOperations(CamundaProcessTestContext processTestContext) {
-        CamundaClient client = processTestContext.createClient();
+        CamundaClient client = processTestContext.createClient(builder -> 
+            builder.restAddress(URI.create("http://localhost:8080")));
         CamundaProcessApplication app = new CamundaProcessApplication(client);
         
         logger.info("Testing user task specific operations");
@@ -214,9 +220,9 @@ class CamundaProcessApplicationTest {
         app.deployProcessDefinition();
         ProcessInstanceEvent processInstance = app.startProcessInstance();
         
-        // Wait for user task
+        // Wait 10 seconds for user task (consistent with main application)
         try {
-            Thread.sleep(2000);
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
