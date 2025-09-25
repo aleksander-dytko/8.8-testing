@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Set logging level for our application -->
+    <logger name="com.example.camunda" level="INFO" />
+    
+    <!-- Set logging level for Camunda client -->
+    <logger name="io.camunda" level="INFO" />
+    
+    <!-- Reduce noise from other libraries -->
+    <logger name="io.grpc" level="WARN" />
+    <logger name="io.netty" level="WARN" />
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>
