@@ -14,7 +14,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Dependency Versions -->
-        <camunda.version>8.8.0-alpha8</camunda.version>
+        <camunda.version>8.8.0-SNAPSHOT</camunda.version>
         <junit.version>5.10.0</junit.version>
         <assertj.version>3.26.3</assertj.version>
         <logback.version>1.4.14</logback.version>

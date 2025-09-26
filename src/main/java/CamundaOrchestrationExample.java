@@ -18,7 +18,6 @@ public class CamundaOrchestrationExample {
 
     try (CamundaClient client = CamundaClient.newClientBuilder()
             .restAddress(REST)
-            .usePlaintext()
             .build()) {
 
         // Deploy a BPMN process
